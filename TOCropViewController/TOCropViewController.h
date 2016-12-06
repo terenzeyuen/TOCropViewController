@@ -337,6 +337,8 @@ typedef NS_ENUM(NSInteger, TOCropViewControllerToolbarPosition) {
                                      completion:(nullable void (^)(void))completion;
 
 - (void)adjustImageBrightness:(CGFloat)value;
+- (void)cropViewDidBecomeResettable:(TOCropView *)cropView;
+- (void)cropViewDidBecomeNonResettable:(TOCropView *)cropView;
 
 @end
 
