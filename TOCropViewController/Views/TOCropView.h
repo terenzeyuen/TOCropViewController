@@ -39,6 +39,9 @@ typedef NS_ENUM(NSInteger, TOCropViewCroppingStyle) {
 
 @interface TOCropView : UIView
 
+
+@property (nonatomic, assign) CGFloat adjustedBrightnessValue;
+
 /**
  The image that the crop view is displaying. This cannot be changed once the crop view is instantiated.
  */
@@ -221,5 +224,7 @@ typedef NS_ENUM(NSInteger, TOCropViewCroppingStyle) {
 - (void)moveCroppedContentToCenterAnimated:(BOOL)animated;
 
 - (void)adjustImageBrightness:(CGFloat)value;
+
+- (UIImage*)applyFinalBrightness;
 
 @end

@@ -24,7 +24,7 @@
 #import "TOCropOverlayView.h"
 #import "TOCropScrollView.h"
 
-#define TOCROPVIEW_BACKGROUND_COLOR [UIColor colorWithWhite:0.12f alpha:1.0f]
+#define TOCROPVIEW_BACKGROUND_COLOR [UIColor colorWithWhite:0.0f alpha:1.0f]
 
 static const CGFloat kTOCropViewPadding = 14.0f;
 static const NSTimeInterval kTOCropTimerDuration = 0.8f;
@@ -98,7 +98,6 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
 @property (nonatomic, assign) CGPoint originalContentOffset; /* Save the original content offset so we can tell if it's been scrolled. */
 @property (nonatomic, assign, readwrite) BOOL canBeReset;
 
-@property (nonatomic, assign) CGFloat adjustedBrightnessValue;
 
 /* In iOS 9, a new dynamic blur effect became available. */
 @property (nonatomic, assign) BOOL dynamicBlurEffect;
@@ -176,7 +175,6 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
     self.resetAspectRatioEnabled = !circularMode;
     self.restoreImageCropFrame = CGRectZero;
     self.restoreAngle = 0;
-    self.adjustedBrightnessValue = 0;
     
     /* Dynamic animation blurring is only possible on iOS 9, however since the API was available on iOS 8,
      we'll need to manually check the system version to ensure that it's available. */
@@ -665,7 +663,7 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
 
 - (void)resetLayoutToDefaultAnimated:(BOOL)animated
 {
-   // [self adjustImageBrightness:-1.0f];
+  
     // If resetting the crop view includes resetting the aspect ratio,
     // reset it to zero here. But set the ivar directly since there's no point
     // in performing the relayout calculations right before a reset.
@@ -1408,53 +1406,54 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
                      completion:nil];
 }
 
-- (void)setBrightnessFor:(UIImageView*)imageView value:(CGFloat)value {
-    if (value >= 0 && _adjustedBrightnessValue + value > 0.9)
-    {
-         return;
-    }
-    else
-    {
-        if(_adjustedBrightnessValue + value < -0.9){
-            return;
-        }
-    }
-    value = _adjustedBrightnessValue + value;
-    _adjustedBrightnessValue = value;
+- (void)setBrightness {
     dispatch_queue_t concurrentQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
     dispatch_async(concurrentQueue, ^{
-        CIImage *inputImage =[[CIImage alloc]initWithImage:self.foregroundImageView.image];
+        CIImage *inputImage =[[CIImage alloc]initWithImage:self.image];
         CIFilter *brightnesContrastFilter = [CIFilter filterWithName:@"CIColorControls"];
         [brightnesContrastFilter setDefaults];
         [brightnesContrastFilter setValue: inputImage forKey: @"inputImage"];
         [brightnesContrastFilter setValue:[NSNumber    numberWithFloat:_adjustedBrightnessValue]forKey:@"inputBrightness"];
         CIImage *outputImage = [brightnesContrastFilter valueForKey: @"outputImage"];
         CIContext *context = [CIContext contextWithOptions:nil];
-        CGImageRef tempImage = [context createCGImage:outputImage fromRect:outputImage.extent];
-        dispatch_async(dispatch_get_main_queue(), ^{
-            
-            imageView.image = [UIImage imageWithCGImage:tempImage];
-            
-        });
-        CGImageRelease(tempImage);
+        
+            dispatch_async(dispatch_get_main_queue(), ^{
+                CGImageRef tempImage = [context createCGImage:outputImage fromRect:outputImage.extent];
+                
+                self.foregroundImageView.image = [UIImage imageWithCGImage:tempImage];
+                self.backgroundImageView.image = [UIImage imageWithCGImage:tempImage];
+                
+                CGImageRelease(tempImage);
+                
+            });
+        
+        
     });
    
 }
 
-- (void) setNewImage:(UIImage*)image
-{
-    self.foregroundImageView.image = image;
-    self.backgroundImageView.image = image;
-}
-
-- (UIImage*) getImage {
-    return self.foregroundImageView.image;
-}
-
 - (void)adjustImageBrightness:(CGFloat)value
 {
-    [self setBrightnessFor:self.foregroundImageView value:value];
-   // [self setBrightnessFor:self.backgroundImageView value:value];
+    _adjustedBrightnessValue = value;
+    self.canBeReset = _adjustedBrightnessValue != 0;
+   [self setBrightness];
+    
+}
+
+- (UIImage*)applyFinalBrightness
+{
+    CIImage *inputImage =[[CIImage alloc]initWithImage:self.image];
+    CIFilter *brightnesContrastFilter = [CIFilter filterWithName:@"CIColorControls"];
+    [brightnesContrastFilter setDefaults];
+    [brightnesContrastFilter setValue: inputImage forKey: @"inputImage"];
+    [brightnesContrastFilter setValue:[NSNumber    numberWithFloat:_adjustedBrightnessValue]forKey:@"inputBrightness"];
+    CIImage *outputImage = [brightnesContrastFilter valueForKey: @"outputImage"];
+    CIContext *context = [CIContext contextWithOptions:nil];
+    CGImageRef tempImage = [context createCGImage:outputImage fromRect:outputImage.extent];
+    UIImage *returnImage = [UIImage imageWithCGImage:tempImage];
+    CGImageRelease(tempImage);
+    return returnImage;
+
 }
 
 - (void)rotateImageNinetyDegreesAnimated:(BOOL)animated

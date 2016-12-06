@@ -62,6 +62,8 @@
     return self;
 }
 
+
+
 - (void)setup {
     self.backgroundColor = [UIColor colorWithWhite:0.12f alpha:1.0f];
     
@@ -85,6 +87,7 @@
     else {
         resourceBundle = classBundle;
     }
+    
     
     _doneTextButton = [UIButton buttonWithType:UIButtonTypeSystem];
     [_doneTextButton setTitle:NSLocalizedStringFromTableInBundle(@"Done",

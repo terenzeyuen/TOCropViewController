@@ -99,10 +99,14 @@
     return [self initWithCroppingStyle:TOCropViewCroppingStyleDefault image:image];
 }
 
+
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
 
+    
+    
     BOOL circularMode = (self.croppingStyle == TOCropViewCroppingStyleCircular);
 
     self.cropView.frame = [self frameForCropViewWithVerticalLayout:CGRectGetWidth(self.view.bounds) < CGRectGetHeight(self.view.bounds)];
@@ -158,6 +162,7 @@
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
+    
     self.inTransition = NO;
     self.cropView.simpleRenderMode = NO;
     if (animated && [UIApplication sharedApplication].statusBarHidden == NO) {
@@ -386,7 +391,6 @@
     if (self.resetAspectRatioEnabled) {
         self.aspectRatioLockEnabled = NO;
     }
-    
     [self.cropView resetLayoutToDefaultAnimated:animated];
 }
 
@@ -715,7 +719,6 @@
 {
     CGRect cropFrame = self.cropView.imageCropFrame;
     NSInteger angle = self.cropView.angle;
-
     //If desired, when the user taps done, show an activity sheet
     if (self.showActivitySheetOnDone) {
         TOActivityCroppedImageProvider *imageItem = [[TOActivityCroppedImageProvider alloc] initWithImage:self.image cropFrame:cropFrame angle:angle circular:(self.croppingStyle == TOCropViewCroppingStyleCircular)];
@@ -793,6 +796,8 @@
     }
     //If the delegate that requires the specific cropped image is provided, call it
     else if ([self.delegate respondsToSelector:@selector(cropViewController:didCropToImage:withRect:angle:)]) {
+        
+       self.image = [self.cropView applyFinalBrightness];
         UIImage *image = nil;
         if (angle == 0 && CGRectEqualToRect(cropFrame, (CGRect){CGPointZero, self.image.size})) {
             image = self.image;
@@ -800,6 +805,7 @@
         else {
             image = [self.image croppedImageWithFrame:cropFrame angle:angle circularClip:NO];
         }
+        
         
         //dispatch on the next run-loop so the animation isn't interuppted by the crop operation
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.03f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
