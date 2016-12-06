@@ -1409,12 +1409,9 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
 }
 
 - (void)setBrightnessFor:(UIImageView*)imageView value:(CGFloat)value {
-    if (value >= 0)
+    if (value >= 0 && _adjustedBrightnessValue + value > 0.9)
     {
-        // do positive stuff
-        if(_adjustedBrightnessValue + value > 0.9){
-            return;
-        }
+         return;
     }
     else
     {
@@ -1422,30 +1419,25 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
             return;
         }
     }
-    
-    
     value = _adjustedBrightnessValue + value;
     _adjustedBrightnessValue = value;
-    NSLog(@"%f", _adjustedBrightnessValue);
-    
-    
-       CIImage *inputImage =[[CIImage alloc]initWithImage:_image];
-       CIFilter *brightnesContrastFilter = [CIFilter filterWithName:@"CIColorControls"];
-       [brightnesContrastFilter setDefaults];
-       [brightnesContrastFilter setValue: inputImage forKey: @"inputImage"];
-       [brightnesContrastFilter setValue:[NSNumber    numberWithFloat:_adjustedBrightnessValue]forKey:@"inputBrightness"];
-       CIImage *outputImage = [brightnesContrastFilter valueForKey: @"outputImage"];
-    CIContext *context = [CIContext contextWithOptions:nil];
-    CGImageRef tempImage = [context createCGImage:outputImage fromRect:outputImage.extent];
-    
-    imageView.image = [UIImage imageWithCGImage:tempImage];
-    CGImageRelease(tempImage);
-    
-//       CIContext *context = [CIContext contextWithOptions:nil];
-//       imageView.image = [UIImage imageWithCGImage:[context createCGImage:outputImage
-//                                                                 fromRect:outputImage.extent]];
-//       inputImage = nil;
-    
+    dispatch_queue_t concurrentQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+    dispatch_async(concurrentQueue, ^{
+        CIImage *inputImage =[[CIImage alloc]initWithImage:self.foregroundImageView.image];
+        CIFilter *brightnesContrastFilter = [CIFilter filterWithName:@"CIColorControls"];
+        [brightnesContrastFilter setDefaults];
+        [brightnesContrastFilter setValue: inputImage forKey: @"inputImage"];
+        [brightnesContrastFilter setValue:[NSNumber    numberWithFloat:_adjustedBrightnessValue]forKey:@"inputBrightness"];
+        CIImage *outputImage = [brightnesContrastFilter valueForKey: @"outputImage"];
+        CIContext *context = [CIContext contextWithOptions:nil];
+        CGImageRef tempImage = [context createCGImage:outputImage fromRect:outputImage.extent];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            imageView.image = [UIImage imageWithCGImage:tempImage];
+            
+        });
+        CGImageRelease(tempImage);
+    });
    
 }
 
@@ -1462,7 +1454,7 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
 - (void)adjustImageBrightness:(CGFloat)value
 {
     [self setBrightnessFor:self.foregroundImageView value:value];
-    [self setBrightnessFor:self.backgroundImageView value:value];
+   // [self setBrightnessFor:self.backgroundImageView value:value];
 }
 
 - (void)rotateImageNinetyDegreesAnimated:(BOOL)animated
