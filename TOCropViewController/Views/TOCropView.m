@@ -98,6 +98,8 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
 @property (nonatomic, assign) CGPoint originalContentOffset; /* Save the original content offset so we can tell if it's been scrolled. */
 @property (nonatomic, assign, readwrite) BOOL canBeReset;
 
+@property (nonatomic, assign) CGFloat adjustedBrightnessValue;
+
 /* In iOS 9, a new dynamic blur effect became available. */
 @property (nonatomic, assign) BOOL dynamicBlurEffect;
 
@@ -174,6 +176,7 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
     self.resetAspectRatioEnabled = !circularMode;
     self.restoreImageCropFrame = CGRectZero;
     self.restoreAngle = 0;
+    self.adjustedBrightnessValue = 0;
     
     /* Dynamic animation blurring is only possible on iOS 9, however since the API was available on iOS 8,
      we'll need to manually check the system version to ensure that it's available. */
@@ -662,6 +665,7 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
 
 - (void)resetLayoutToDefaultAnimated:(BOOL)animated
 {
+   // [self adjustImageBrightness:-1.0f];
     // If resetting the crop view includes resetting the aspect ratio,
     // reset it to zero here. But set the ivar directly since there's no point
     // in performing the relayout calculations right before a reset.
@@ -1404,13 +1408,72 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
                      completion:nil];
 }
 
+- (void)setBrightnessFor:(UIImageView*)imageView value:(CGFloat)value {
+    if (value >= 0)
+    {
+        // do positive stuff
+        if(_adjustedBrightnessValue + value > 0.9){
+            return;
+        }
+    }
+    else
+    {
+        if(_adjustedBrightnessValue + value < -0.9){
+            return;
+        }
+    }
+    
+    
+    value = _adjustedBrightnessValue + value;
+    _adjustedBrightnessValue = value;
+    NSLog(@"%f", _adjustedBrightnessValue);
+    
+    
+       CIImage *inputImage =[[CIImage alloc]initWithImage:_image];
+       CIFilter *brightnesContrastFilter = [CIFilter filterWithName:@"CIColorControls"];
+       [brightnesContrastFilter setDefaults];
+       [brightnesContrastFilter setValue: inputImage forKey: @"inputImage"];
+       [brightnesContrastFilter setValue:[NSNumber    numberWithFloat:_adjustedBrightnessValue]forKey:@"inputBrightness"];
+       CIImage *outputImage = [brightnesContrastFilter valueForKey: @"outputImage"];
+    CIContext *context = [CIContext contextWithOptions:nil];
+    CGImageRef tempImage = [context createCGImage:outputImage fromRect:outputImage.extent];
+    
+    imageView.image = [UIImage imageWithCGImage:tempImage];
+    CGImageRelease(tempImage);
+    
+//       CIContext *context = [CIContext contextWithOptions:nil];
+//       imageView.image = [UIImage imageWithCGImage:[context createCGImage:outputImage
+//                                                                 fromRect:outputImage.extent]];
+//       inputImage = nil;
+    
+   
+}
+
+- (void) setNewImage:(UIImage*)image
+{
+    self.foregroundImageView.image = image;
+    self.backgroundImageView.image = image;
+}
+
+- (UIImage*) getImage {
+    return self.foregroundImageView.image;
+}
+
+- (void)adjustImageBrightness:(CGFloat)value
+{
+    [self setBrightnessFor:self.foregroundImageView value:value];
+    [self setBrightnessFor:self.backgroundImageView value:value];
+}
+
 - (void)rotateImageNinetyDegreesAnimated:(BOOL)animated
 {
     [self rotateImageNinetyDegreesAnimated:animated clockwise:NO];
+    
 }
 
 - (void)rotateImageNinetyDegreesAnimated:(BOOL)animated clockwise:(BOOL)clockwise
 {
+  //  [self adjustImageBrightness:1.0f];
     //Only allow one rotation animation at a time
     if (self.rotateAnimationInProgress)
         return;

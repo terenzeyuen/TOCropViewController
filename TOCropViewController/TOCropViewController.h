@@ -336,5 +336,7 @@ typedef NS_ENUM(NSInteger, TOCropViewControllerToolbarPosition) {
                                           setup:(nullable void (^)(void))setup
                                      completion:(nullable void (^)(void))completion;
 
+- (void)adjustImageBrightness:(CGFloat)value;
+
 @end
 

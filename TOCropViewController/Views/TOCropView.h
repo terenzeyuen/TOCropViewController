@@ -220,4 +220,6 @@ typedef NS_ENUM(NSInteger, TOCropViewCroppingStyle) {
  */
 - (void)moveCroppedContentToCenterAnimated:(BOOL)animated;
 
+- (void)adjustImageBrightness:(CGFloat)value;
+
 @end

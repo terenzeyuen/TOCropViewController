@@ -62,6 +62,7 @@
 - (void)resetCropViewLayout;
 - (void)rotateCropViewClockwise;
 - (void)rotateCropViewCounterclockwise;
+- (void)adjustImageBrightness;
 
 /* View layout */
 - (CGRect)frameForToolBarWithVerticalLayout:(BOOL)verticalLayout;
@@ -87,7 +88,7 @@
         
         _aspectRatioPreset = TOCropViewControllerAspectRatioPresetOriginal;
         _toolbarPosition = TOCropViewControllerToolbarPositionBottom;
-        _rotateClockwiseButtonHidden = YES;
+        _rotateClockwiseButtonHidden = NO;
     }
     
     return self;
@@ -539,8 +540,15 @@
 
 - (void)rotateCropViewCounterclockwise
 {
+    
     [self.cropView rotateImageNinetyDegreesAnimated:YES clockwise:NO];
 }
+
+- (void)adjustImageBrightness:(CGFloat)value
+{
+    [self.cropView adjustImageBrightness: value];
+}
+
 
 #pragma mark - Crop View Delegates -
 - (void)cropViewDidBecomeResettable:(TOCropView *)cropView
