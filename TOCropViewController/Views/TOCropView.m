@@ -1435,7 +1435,6 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
 - (void)adjustImageBrightness:(CGFloat)value
 {
     _adjustedBrightnessValue = value;
-    self.canBeReset = _adjustedBrightnessValue != 0;
    [self setBrightness];
     
 }
