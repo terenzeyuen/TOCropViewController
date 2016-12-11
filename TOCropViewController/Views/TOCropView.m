@@ -265,6 +265,9 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
 {
     [super didMoveToSuperview];
     
+    
+    self.context = [CIContext contextWithOptions:nil];
+    
     //Since this also gets called when getting removed from the superview
     if (self.superview == nil) {
         return;
@@ -1415,11 +1418,9 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
         [brightnesContrastFilter setValue: inputImage forKey: @"inputImage"];
         [brightnesContrastFilter setValue:[NSNumber    numberWithFloat:_adjustedBrightnessValue]forKey:@"inputBrightness"];
         CIImage *outputImage = [brightnesContrastFilter valueForKey: @"outputImage"];
-        CIContext *context = [CIContext contextWithOptions:nil];
         
-            dispatch_async(dispatch_get_main_queue(), ^{
-                CGImageRef tempImage = [context createCGImage:outputImage fromRect:outputImage.extent];
-                
+        dispatch_async(dispatch_get_main_queue(), ^{
+            CGImageRef tempImage = [_context createCGImage:outputImage fromRect:outputImage.extent];
                 self.foregroundImageView.image = [UIImage imageWithCGImage:tempImage];
                 self.backgroundImageView.image = [UIImage imageWithCGImage:tempImage];
                 
@@ -1439,6 +1440,8 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
     
 }
 
+
+
 - (UIImage*)applyFinalBrightness
 {
     CIImage *inputImage =[[CIImage alloc]initWithImage:self.image];
@@ -1447,8 +1450,7 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
     [brightnesContrastFilter setValue: inputImage forKey: @"inputImage"];
     [brightnesContrastFilter setValue:[NSNumber    numberWithFloat:_adjustedBrightnessValue]forKey:@"inputBrightness"];
     CIImage *outputImage = [brightnesContrastFilter valueForKey: @"outputImage"];
-    CIContext *context = [CIContext contextWithOptions:nil];
-    CGImageRef tempImage = [context createCGImage:outputImage fromRect:outputImage.extent];
+    CGImageRef tempImage = [self.context createCGImage:outputImage fromRect:outputImage.extent];
     UIImage *returnImage = [UIImage imageWithCGImage:tempImage];
     CGImageRelease(tempImage);
     return returnImage;

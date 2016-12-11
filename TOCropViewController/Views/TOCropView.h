@@ -223,6 +223,9 @@ typedef NS_ENUM(NSInteger, TOCropViewCroppingStyle) {
  */
 - (void)moveCroppedContentToCenterAnimated:(BOOL)animated;
 
+
+@property (nonnull, nonatomic, strong) CIContext* context;
+
 - (void)adjustImageBrightness:(CGFloat)value;
 
 - (UIImage*)applyFinalBrightness;

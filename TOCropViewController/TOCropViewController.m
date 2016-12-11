@@ -99,12 +99,18 @@
     return [self initWithCroppingStyle:TOCropViewCroppingStyleDefault image:image];
 }
 
-
+-(void)sliderAction:(id)sender
+{
+    UISlider *slider = (UISlider*)sender;
+    float value = slider.value;
+    [self adjustImageBrightness:(CGFloat)value];
+    //-- Do further actions
+}
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-
+    
     
     
     BOOL circularMode = (self.croppingStyle == TOCropViewCroppingStyleCircular);
@@ -163,6 +169,16 @@
 {
     [super viewDidAppear:animated];
     
+//    CGRect frame = CGRectMake(10, 20, 200.0, 10.0);
+//    UISlider *slider = [[UISlider alloc] initWithFrame:frame];
+//    [slider addTarget:self action:@selector(sliderAction:) forControlEvents:UIControlEventValueChanged];
+//    [slider setBackgroundColor:[UIColor clearColor]];
+//    slider.minimumValue = -0.9;
+//    slider.maximumValue = 0.9;
+//    slider.continuous = YES;
+//    slider.value = 0;
+//    [self.view addSubview:slider];
+
     self.inTransition = NO;
     self.cropView.simpleRenderMode = NO;
     if (animated && [UIApplication sharedApplication].statusBarHidden == NO) {
