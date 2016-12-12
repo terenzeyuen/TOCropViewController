@@ -1410,26 +1410,28 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
 }
 
 - (void)setBrightness {
-    dispatch_queue_t concurrentQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-    dispatch_async(concurrentQueue, ^{
-        CIImage *inputImage =[[CIImage alloc]initWithImage:self.image];
-        CIFilter *brightnesContrastFilter = [CIFilter filterWithName:@"CIColorControls"];
-        [brightnesContrastFilter setDefaults];
-        [brightnesContrastFilter setValue: inputImage forKey: @"inputImage"];
-        [brightnesContrastFilter setValue:[NSNumber    numberWithFloat:_adjustedBrightnessValue]forKey:@"inputBrightness"];
-        CIImage *outputImage = [brightnesContrastFilter valueForKey: @"outputImage"];
-        
-        dispatch_async(dispatch_get_main_queue(), ^{
-            CGImageRef tempImage = [_context createCGImage:outputImage fromRect:outputImage.extent];
-                self.foregroundImageView.image = [UIImage imageWithCGImage:tempImage];
-                self.backgroundImageView.image = [UIImage imageWithCGImage:tempImage];
-                
-                CGImageRelease(tempImage);
-                
-            });
-        
-        
-    });
+     @autoreleasepool {
+         dispatch_queue_t concurrentQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+         dispatch_async(concurrentQueue, ^{
+             CIImage *inputImage =[[CIImage alloc]initWithImage:self.image];
+             CIFilter *brightnesContrastFilter = [CIFilter filterWithName:@"CIColorControls"];
+             [brightnesContrastFilter setDefaults];
+             [brightnesContrastFilter setValue: inputImage forKey: @"inputImage"];
+             [brightnesContrastFilter setValue:[NSNumber    numberWithFloat:_adjustedBrightnessValue]forKey:@"inputBrightness"];
+             CIImage *outputImage = [brightnesContrastFilter valueForKey: @"outputImage"];
+             
+             dispatch_async(dispatch_get_main_queue(), ^{
+                 CGImageRef tempImage = [_context createCGImage:outputImage fromRect:outputImage.extent];
+                 self.foregroundImageView.image = [UIImage imageWithCGImage:tempImage];
+                 self.backgroundImageView.image = [UIImage imageWithCGImage:tempImage];
+                 
+                 CGImageRelease(tempImage);
+                 
+             });
+             
+             
+         });
+     }
    
 }
 
