@@ -1555,9 +1555,12 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
     self.scrollView.contentSize = self.backgroundContainerView.frame.size;
     
     //assign the new crop box frame and re-adjust the content to fill it
-    self.cropBoxFrame = newCropFrame;
-    [self moveCroppedContentToCenterAnimated:NO];
-    newCropFrame = self.cropBoxFrame;
+    if(self.resetAspectRatioEnabled) {
+        self.cropBoxFrame = newCropFrame;
+        [self moveCroppedContentToCenterAnimated:NO];
+        newCropFrame = self.cropBoxFrame;
+    }
+    
     
     //work out how to line up out point of interest into the middle of the crop box
     cropTargetPoint.x *= scale;
