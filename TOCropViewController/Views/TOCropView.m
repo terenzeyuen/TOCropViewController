@@ -1553,7 +1553,7 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
     
     //Flip the content size of the scroll view to match the rotated bounds
     self.scrollView.contentSize = self.backgroundContainerView.frame.size;
-    
+  
     //assign the new crop box frame and re-adjust the content to fill it
     if(self.resetAspectRatioEnabled) {
         self.cropBoxFrame = newCropFrame;
@@ -1624,6 +1624,10 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
             } completion:^(BOOL complete) {
                 self.rotateAnimationInProgress = NO;
                 [snapshotView removeFromSuperview];
+                if (!self.resetAspectRatioEnabled){
+                    [self moveCroppedContentToCenterAnimated: YES];
+                }
+                
             }];
         }];
     }
